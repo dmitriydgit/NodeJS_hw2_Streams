@@ -1,38 +1,30 @@
 const http = require("http");
 const fs = require('fs');
-const zlib = require('zlib')
+const gzip = require('zlib')
 
-const server = http.createServer((req, res) => {
 
-	var fileName = req.headers.filename;
-	console.log("File requested: " + fileName);
-
+const server = http.createServer(function (req, res) {
+	const fileName = req.headers.filename;
+	console.log(req.headers);
+	console.log("File requested : " + fileName);
 
 	req
+		.on('error', function (err) {
+			res.writeHead(500, { 'Content-Type': 'text/plain' });
+			res.end('Error ocured');
+			console.error(err.stack);
+		})
+
+		.pipe(gzip.Unzip())
 		.pipe(fs.createWriteStream(fileName))
 		.on('finish', function () {
-			res.writeHead(201, { 'content-type': 'text/plain' });
-			res.end('Thats it');
-			console.log('File saved ' + fileName);
-		});
+			res.writeHead(201, { 'Content-Type': 'text/plain' })
+			res.end('That\'s it\n');
+			console.log('File saved' + fileName);
 
-	// 	res.statusCode = 200;
-	// 	res.setHeader('Content-Type', 'text/plain');
-	// 	res.end(output);
-	// });
+		})
+})
 
-
-
-	// let output;
-
-	// let readStream = fs.createReadStream('input_data.txt')
-
-	// readStream.on('data', function (chunk) {
-	// 	console.log('****************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************');
-	// 	console.log(chunk.toString());
-	// 	output = chunk.toString();
-	// })
-});
 
 const hostname = '127.0.0.1';
 const port = 3000;
